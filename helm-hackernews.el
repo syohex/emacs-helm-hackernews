@@ -1,11 +1,11 @@
 ;;; helm-hackernews.el --- helm interface of hackernews.el
 
-;; Copyright (C) 2013 by Syohei YOSHIDA
+;; Copyright (C) 2014 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-hackernews
 ;; Version: 0.01
-;; Package-Requires: ((helm "1.0"))
+;; Package-Requires: ((helm "1.0") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,8 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl-lib)
 
 (require 'helm)
 (require 'json)
@@ -67,21 +66,21 @@
 
 (defun helm-hackernews-init ()
   (let ((json-res (helm-hackernews-get-posts)))
-    (sort (loop with posts = (assoc-default 'items json-res)
-                for post across posts
-                for points = (assoc-default 'points post)
-                for title = (assoc-default 'title post)
-                for url = (assoc-default 'url post)
-                for comments = (assoc-default 'commentCount post)
-                for id = (assoc-default 'id post)
-                for cand = (format "%s %s (%d comments)"
-                                   (format "[%d]" points)
-                                   (propertize title 'face 'helm-hackernews-title)
-                                   comments)
-                collect
-                (cons cand
-                      (list :url url :points points
-                            :post-url (format "https://news.ycombinator.com/item?id=%s" id))))
+    (sort (cl-loop with posts = (assoc-default 'items json-res)
+                   for post across posts
+                   for points = (assoc-default 'points post)
+                   for title = (assoc-default 'title post)
+                   for url = (assoc-default 'url post)
+                   for comments = (assoc-default 'commentCount post)
+                   for id = (assoc-default 'id post)
+                   for cand = (format "%s %s (%d comments)"
+                                      (format "[%d]" points)
+                                      (propertize title 'face 'helm-hackernews-title)
+                                      comments)
+                   collect
+                   (cons cand
+                         (list :url url :points points
+                               :post-url (format "https://news.ycombinator.com/item?id=%s" id))))
           'helm-hackernews-sort-predicate)))
 
 (defun helm-hackernews-browse-link (cand)
