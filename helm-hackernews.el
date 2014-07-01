@@ -46,18 +46,17 @@
 
 (defun helm-hackernews-get-posts ()
   (with-temp-buffer
-    (let ((cmd (concat "curl -s " helm-hackernews-url))
-          (json nil))
-      (unless (zerop (call-process-shell-command cmd nil t))
-        (error "Failed: %s'" cmd))
-      (let ((ret (ignore-errors
-                   (setq json (json-read-from-string
-                               (buffer-substring-no-properties
-                                (point-min) (point-max))))
-                   t)))
-        (unless ret
-          (error "Error: Can't get JSON response"))
-        json))))
+    (unless (zerop (call-process "curl" nil t nil "-s" helm-hackernews-url))
+      (error "Failed: 'curl -s %s'" helm-hackernews-url))
+    (let* ((json nil)
+           (ret (ignore-errors
+                  (setq json (json-read-from-string
+                              (buffer-substring-no-properties
+                               (point-min) (point-max))))
+                  t)))
+      (unless ret
+        (error "Error: Can't get JSON response"))
+      json)))
 
 (defun helm-hackernews-sort-predicate (a b)
   (let ((points-a (plist-get (cdr a) :points))
